@@ -34,3 +34,25 @@ export const updateUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteUser = async (req, res, next) => {
+  try {
+    // Assuming you have user ID stored in the request object after authentication middleware
+    const userIdFromToken = req.user.id; // This should come from your authentication middleware
+    const userIdToDelete = req.params.id;
+
+    // Check if the user is authorized to delete their own account
+    if (userIdFromToken !== userIdToDelete) {
+      return next(errorHandler(401, "You can only delete your own account"));
+    }
+
+    // Proceed with deleting the user
+    await User.findByIdAndDelete(userIdToDelete);
+
+    // Clear cookie and send response
+    res.clearCookie("access_token");
+    res.status(200).json({ message: "User has been deleted..." });
+  } catch (error) {
+    next(error);
+  }
+};
